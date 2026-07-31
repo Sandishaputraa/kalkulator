@@ -1,0 +1,54 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Mesin Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Mesin Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Instal Framework Cordova
+        run: npm install -g cordova
+
+      - name: Proses Build APK
+        run: |
+          cordova create app com.byputra.kalkulator Kalkulator
+          rm -rf app/www/*
+          cp index.html app/www/
+          cp 45520.png app/icon.png
+          cd app
+          cat <<ConfigXML > config.xml
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.byputra.kalkulator" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+              <name>Kalkulator</name>
+              <description>Kalkulator Web to APK by Putra</description>
+              <author email="dev@byputra.com" href="http://byputra.com">Putra</author>
+              <content src="index.html" />
+              <icon src="icon.png" />
+              <preference name="Orientation" value="portrait" />
+          </widget>
+          ConfigXML
+          cordova platform add android
+          cordova build android
+
+      - name: Mengamankan File APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kalkulator-APK
+          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
