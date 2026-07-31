@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
           cordova create app com.byputra.kalkulator Kalkulator
           rm -rf app/www/*
           cp index.html app/www/
-          cp 45520.png app/icon.png
+          cp Calculator-2017-10-10.png app/icon.png
           cd app
           cat <<ConfigXML > config.xml
           <?xml version='1.0' encoding='utf-8'?>
@@ -46,9 +49,14 @@ jobs:
           ConfigXML
           cordova platform add android
           cordova build android
+          
+          # Menyalin dan merapikan nama file APK ke luar folder app
+          cp platforms/android/app/build/outputs/apk/debug/app-debug.apk ../Kalkulator-v1.0.apk
 
-      - name: Mengamankan File APK
-        uses: actions/upload-artifact@v4
+      - name: Unggah ke GitHub Releases
+        uses: softprops/action-gh-release@v2
         with:
-          name: Kalkulator-APK
-          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          files: Kalkulator-v1.0.apk
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Kalkulator App v1.0.${{ github.run_number }}"
+          body: "Aplikasi Kalkulator Android otomatis versi terbaru buatan Putra."
