@@ -31,14 +31,22 @@ jobs:
 
       - name: Proses Build APK
         run: |
+          # Menggunakan nomor run GitHub sebagai basis versi yang konsisten
+          BUILD_NUM=${{ github.run_number }}
+          APP_VERSION="1.0.$BUILD_NUM"
+          
+          echo "Menyusun APK dengan Versi: $APP_VERSION"
+
           cordova create app com.byputra.kalkulator Kalkulator
           rm -rf app/www/*
           cp index.html app/www/
           cp 45520.png app/icon.png
           cd app
+          
+          # Menyuntikkan versi yang sama persis ke config.xml
           cat <<ConfigXML > config.xml
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.byputra.kalkulator" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+          <widget id="com.byputra.kalkulator" version="$APP_VERSION" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
               <name>Kalkulator</name>
               <description>Kalkulator Web to APK by Putra</description>
               <author email="dev@byputra.com" href="http://byputra.com">Putra</author>
@@ -47,16 +55,28 @@ jobs:
               <preference name="Orientation" value="portrait" />
           </widget>
           ConfigXML
+          
           cordova platform add android
           cordova build android
           
-          cp platforms/android/app/build/outputs/apk/debug/app-debug.apk ../Kalkulator-v1.0.apk
+          # Menyalin file APK dengan menyertakan nomor versi yang seragam
+          cp platforms/android/app/build/outputs/apk/debug/app-debug.apk ../Kalkulator-v$APP_VERSION.apk
 
-      - name: Unggah ke GitHub Releases
+      - name: Hapus Release & Tag Lama
+        uses: dev-drprasad/delete-tag-and-release@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          delete_release: true
+        continue-on-error: true
+
+      - name: Unggah APK Versi Terbaru ke Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: Kalkulator-v1.0.apk
-          tag_name: v1.0.${{ github.run_number }}
-          name: "Kalkulator App v1.0.${{ github.run_number }}"
-          body: "Aplikasi Kalkulator Android otomatis versi terbaru buatan Putra."
+          files: Kalkulator-v1.0.${{ github.run_number }}.apk
+          tag_name: latest
+          name: "Kalkulator v1.0.${{ github.run_number }}"
+          body: "Pembaruan otomatis terbaru. Versi aplikasi dan asset sistem telah disinkronkan."
+          prerelease: false
 
