@@ -75,6 +75,6 @@ jobs:
           files: Kalkulator-v1.0.${{ github.run_number }}.apk
           tag_name: latest
           name: "Kalkulator v1.0.${{ github.run_number }}"
-          body: "Pembaruan otomatis terbaru. Versi aplikasi dan asset sistem telah disinkronkan."
+          body: "Pembaruan terbaru. Versi aplikasi dan asset sistem telah disinkronkan."
           prerelease: false
 
